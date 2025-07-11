@@ -83,7 +83,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       await signInWithRedirect(auth, provider);
     } catch (error: any) {
        if (error.code === 'auth/unauthorized-domain') {
-          setLoginError(`Este domínio (${window.location.hostname}) não está autorizado para login. Adicione-o no seu console do Firebase em Authentication > Domínios Autorizados.`);
+          setLoginError(`Este domínio (${window.location.hostname}) não está autorizado. Adicione-o na lista de "Domínios autorizados" do seu console do Firebase.`);
       } else {
           setLoginError("Não foi possível iniciar o processo de login. Verifique o console para mais detalhes.");
       }
