@@ -53,16 +53,13 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const [auth, setAuth] = useState<Auth | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   useEffect(() => {
-    const authInstance = getAuth(app);
-    setAuth(authInstance);
-
-    const unsubscribe = onAuthStateChanged(authInstance, (currentUser) => {
+    const auth = getAuth(app);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);
         setLoginError(null);
         setLoading(false);
@@ -76,7 +73,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   const login = async () => {
-    if (!auth) return;
+    const auth = getAuth(app);
     setLoginError(null);
     const provider = new GoogleAuthProvider();
     try {
@@ -92,9 +89,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    if (auth) {
-      await signOut(auth);
-    }
+    const auth = getAuth(app);
+    await signOut(auth);
   };
 
   if (loading) {
