@@ -21,7 +21,7 @@ import {
 import { 
   type User, 
   onAuthStateChanged, 
-  signInWithRedirect,
+  signInWithPopup,
   GoogleAuthProvider,
   signOut,
   getAuth,
@@ -56,9 +56,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState<string | null>(null);
+  const auth = getAuth(app);
 
   useEffect(() => {
-    const auth = getAuth(app);
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
         setUser(currentUser);
         setLoginError(null);
@@ -70,26 +70,28 @@ export function Providers({ children }: { children: React.ReactNode }) {
         setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   const login = async () => {
-    const auth = getAuth(app);
     setLoginError(null);
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithRedirect(auth, provider);
+      await signInWithPopup(auth, provider);
     } catch (error: any) {
-       if (error.code === 'auth/unauthorized-domain') {
+       if (error.code === 'auth/popup-closed-by-user') {
+          setLoginError("A janela de login foi fechada antes da conclusão.");
+       } else if (error.code === 'auth/popup-blocked') {
+           setLoginError("O pop-up de login foi bloqueado pelo seu navegador. Por favor, habilite os pop-ups para este site.");
+       } else if (error.code === 'auth/unauthorized-domain') {
           setLoginError(`Este domínio (${window.location.hostname}) não está autorizado. Adicione-o na lista de "Domínios autorizados" do seu console do Firebase.`);
-      } else {
-          setLoginError("Não foi possível iniciar o processo de login. Verifique o console para mais detalhes.");
-      }
-      console.error("Firebase signInWithRedirect error:", error);
+       } else {
+          setLoginError("Não foi possível realizar o login. Verifique o console para mais detalhes.");
+       }
+      console.error("Firebase signInWithPopup error:", error);
     }
   };
 
   const logout = async () => {
-    const auth = getAuth(app);
     await signOut(auth);
   };
 

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 interface LoginPageProps {
     login: () => Promise<void>;
@@ -24,6 +24,7 @@ function GoogleIcon() {
 
 export function LoginPage({ login, loginError }: LoginPageProps) {
   const [hostname, setHostname] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
     // This code runs only on the client side
@@ -31,6 +32,15 @@ export function LoginPage({ login, loginError }: LoginPageProps) {
         setHostname(window.location.hostname);
     }
   }, []);
+  
+  const handleLoginClick = async () => {
+    setIsLoggingIn(true);
+    await login();
+    // In case of an error, loginError will be set in the parent,
+    // and we should stop the loading indicator.
+    // The success case will unmount this component, so no need to set it to false.
+    setTimeout(() => setIsLoggingIn(false), 2000); // Failsafe timeout
+  };
 
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
@@ -48,12 +58,21 @@ export function LoginPage({ login, loginError }: LoginPageProps) {
               </Alert>
           )}
 
-          <Button onClick={login} className="w-full rounded-2xl" size="lg">
-            <GoogleIcon />
-            Login com Google
+          <Button onClick={handleLoginClick} className="w-full rounded-2xl" size="lg" disabled={isLoggingIn}>
+            {isLoggingIn ? (
+                <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Aguarde...
+                </>
+            ) : (
+                <>
+                    <GoogleIcon />
+                    Login com Google
+                </>
+            )}
           </Button>
 
-          {!loginError && hostname && (
+          {hostname && (
             <div className="text-center text-xs text-muted-foreground p-2 border rounded-md">
               <p className="font-bold">Problemas com o login?</p>
               <p>Certifique-se de que o seguinte domínio está na sua lista de "Domínios autorizados" no Firebase Authentication:</p>
